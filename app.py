@@ -66,6 +66,8 @@ def split():
 @app.route("/compress", methods=["POST"])
 def compress():
     file = request.files.get("compress_file")
+    compress_level = request.form.get("compress_level", "/screen")  # default if none selected
+
     if not file or not allowed_file(file.filename):
         flash("Please upload a valid PDF file to compress.", "danger")
         return redirect(url_for("index"))
@@ -80,7 +82,7 @@ def compress():
         gs_executable,
         "-sDEVICE=pdfwrite",
         "-dCompatibilityLevel=1.4",
-        "-dPDFSETTINGS=/screen",
+        f"-dPDFSETTINGS={compress_level}",
         "-dNOPAUSE",
         "-dQUIET",
         "-dBATCH",
@@ -94,9 +96,6 @@ def compress():
         return send_file(output_path, as_attachment=True, download_name="compressed_" + secure_filename(file.filename))
     except subprocess.CalledProcessError:
         flash("Compression failed. Make sure Ghostscript is installed.", "danger")
-        return redirect(url_for("index"))
-    except FileNotFoundError:
-        flash("Ghostscript executable not found. Make sure Ghostscript is installed and in PATH.", "danger")
         return redirect(url_for("index"))
 
 if __name__ == "__main__":

@@ -43,10 +43,17 @@
     <!-- Compress PDF -->
     <h3>Compress PDF</h3>
     <form action="/compress" method="POST" enctype="multipart/form-data" class="mb-4">
-  <input type="file" name="compress_file" class="form-control mb-2" accept="application/pdf" required />
-  <button type="submit" class="btn btn-primary">Compress PDF</button>
-</form>
-
+      <input type="file" name="compress_file" class="form-control mb-2" accept="application/pdf" required />
+      <label for="compress_level" class="form-label">Compression Level:</label>
+      <select name="compress_level" id="compress_level" class="form-select mb-3" required>
+        <option value="/screen">Screen (lowest quality, smallest size)</option>
+        <option value="/ebook">Ebook</option>
+        <option value="/printer">Printer</option>
+        <option value="/prepress">Prepress (highest quality)</option>
+        <option value="/default">Default</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Compress PDF</button>
+    </form>
 
   </div>
 
