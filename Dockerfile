@@ -1,8 +1,8 @@
 # Use official slim Python image
 FROM python:3.11-slim
 
-# Install Ghostscript
-RUN apt-get update && apt-get install -y ghostscript
+# Install Ghostscript (single clean line)
+RUN apt-get update && apt-get install -y ghostscript && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
