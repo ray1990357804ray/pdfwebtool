@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Tool Web</title>
+</head>
+<body>
+    <h1>PDF Tool Web Interface</h1>
+
+    <h2>Merge PDFs</h2>
+    <form method="POST" action="/merge" enctype="multipart/form-data">
+        <input type="file" name="merge_files" multiple required>
+        <button type="submit">Merge</button>
+    </form>
+
+    <h2>Split PDF</h2>
+    <form method="POST" action="/split" enctype="multipart/form-data">
+        <input type="file" name="split_file" required>
+        <button type="submit">Split</button>
+    </form>
+
+    <h2>Compress PDF</h2>
+    <form method="POST" action="/compress" enctype="multipart/form-data">
+        <input type="file" name="compress_file" required>
+        <select name="quality">
+            <option value="/screen">/screen (low)</option>
+            <option value="/ebook">/ebook</option>
+            <option value="/printer">/printer</option>
+            <option value="/prepress">/prepress (high)</option>
+        </select>
+        <button type="submit">Compress</button>
+    </form>
+</body>
+</html>
