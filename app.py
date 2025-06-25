@@ -1,8 +1,10 @@
 import os
 import tempfile
+import subprocess
 from flask import Flask, request, send_file, redirect, url_for, flash, render_template
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 import zipfile
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
@@ -71,10 +73,10 @@ def compress():
     input_path = os.path.join(tempfile.gettempdir(), secure_filename(file.filename))
     file.save(input_path)
 
-    output_path = os.path.join(tempfile.gettempdir(), "compressed.pdf")
+    output_path = os.path.join(tempfile.gettempdir(), "compressed_" + secure_filename(file.filename))
 
     gs_cmd = [
-        "gs",
+        r"C:/Program Files/gs/gs10.05.1/bin/gswin64c.exe",  # Windows Ghostscript executable path
         "-sDEVICE=pdfwrite",
         "-dCompatibilityLevel=1.4",
         "-dPDFSETTINGS=/screen",
@@ -88,9 +90,9 @@ def compress():
     try:
         subprocess.run(gs_cmd, check=True)
         flash("PDF compressed successfully!", "success")
-        return send_file(output_path, as_attachment=True, download_name="compressed.pdf")
-    except Exception:
-        flash("Compression failed. Make sure Ghostscript is correctly installed.", "danger")
+        return send_file(output_path, as_attachment=True, download_name="compressed_" + secure_filename(file.filename))
+    except subprocess.CalledProcessError:
+        flash("Compression failed. Make sure Ghostscript is installed.", "danger")
         return redirect(url_for("index"))
 
 if __name__ == "__main__":
