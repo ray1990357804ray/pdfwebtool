@@ -1,33 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PDF Tool Web</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF Tool</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" />
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
-<body>
-    <h1>PDF Tool Web Interface</h1>
 
-    <h2>Merge PDFs</h2>
-    <form method="POST" action="/merge" enctype="multipart/form-data">
-        <input type="file" name="merge_files" multiple required>
-        <button type="submit">Merge</button>
+<body class="bg-dark text-light">
+  <div class="container py-5">
+
+    <h1 class="mb-4 text-center">PDF Tool</h1>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Merge PDFs -->
+    <h3>Merge PDFs</h3>
+    <form action="/merge" method="POST" enctype="multipart/form-data" class="mb-4">
+      <input type="file" name="merge_files" multiple required class="form-control mb-2" accept="application/pdf" />
+      <button type="submit" class="btn btn-primary">Merge PDFs</button>
     </form>
 
-    <h2>Split PDF</h2>
-    <form method="POST" action="/split" enctype="multipart/form-data">
-        <input type="file" name="split_file" required>
-        <button type="submit">Split</button>
+    <!-- Split PDF -->
+    <h3>Split PDF</h3>
+    <form action="/split" method="POST" enctype="multipart/form-data" class="mb-4">
+      <input type="file" name="split_file" required class="form-control mb-2" accept="application/pdf" />
+      <button type="submit" class="btn btn-primary">Split PDF</button>
     </form>
 
-    <h2>Compress PDF</h2>
-    <form method="POST" action="/compress" enctype="multipart/form-data">
-        <input type="file" name="compress_file" required>
-        <select name="quality">
-            <option value="/screen">/screen (low)</option>
-            <option value="/ebook">/ebook</option>
-            <option value="/printer">/printer</option>
-            <option value="/prepress">/prepress (high)</option>
-        </select>
-        <button type="submit">Compress</button>
+    <!-- Compress PDF (disabled for now) -->
+    <h3>Compress PDF (Coming Soon)</h3>
+    <form action="/compress" method="POST" enctype="multipart/form-data" class="mb-4">
+      <input type="file" name="compress_file" class="form-control mb-2" accept="application/pdf" />
+      <button type="submit" class="btn btn-primary">Compress PDF</button>
     </form>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

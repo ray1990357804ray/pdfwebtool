@@ -1,0 +1,75 @@
+/* Full background with bg.jpg and transparent overlay */
+body {
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), /* semi-transparent black overlay */
+    url('/static/bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: #e0e0e0; /* lighter text */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container with subtle background */
+.container {
+  background-color: rgba(25, 25, 25, 0.85);
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+/* Headings */
+h1, h3 {
+  font-weight: 700;
+  color: #fafafa;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+  transition: background-color 0.3s ease;
+}
+.btn-primary:hover {
+  background-color: #357ABD;
+  border-color: #357ABD;
+}
+
+/* Disabled buttons */
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* File inputs styling */
+input[type="file"] {
+  background-color: #222;
+  color: #eee;
+  border-radius: 6px;
+  border: 1px solid #444;
+  padding: 6px 10px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="file"]:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 8px #4a90e2;
+}
+
+/* Flash messages */
+.alert {
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+/* Responsive padding */
+@media (max-width: 576px) {
+  .container {
+    padding: 1rem 1.2rem;
+  }
+}

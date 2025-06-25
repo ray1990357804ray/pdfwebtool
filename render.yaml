@@ -1,0 +1,10 @@
+gunicorn app:app
+
+services:
+  - type: web
+    name: pdfwebtool
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
+    plan: free
+    envVars: []

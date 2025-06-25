@@ -1,88 +1,97 @@
 import os
-import subprocess
-from flask import Flask, render_template, request, send_file, redirect, url_for
+import tempfile
+from flask import Flask, request, send_file, redirect, url_for, flash, render_template
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
-from werkzeug.utils import secure_filename
+import zipfile
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-RESULT_FOLDER = 'results'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(RESULT_FOLDER, exist_ok=True)
+app.secret_key = 'your-secret-key'
 
-@app.route('/')
+UPLOAD_FOLDER = tempfile.gettempdir()
+ALLOWED_EXTENSIONS = {'pdf'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/merge', methods=['POST'])
+@app.route("/merge", methods=["POST"])
 def merge():
-    files = request.files.getlist('merge_files')
+    files = request.files.getlist("merge_files")
+    if not files or any(not allowed_file(f.filename) for f in files):
+        flash("Please upload valid PDF files for merging.", "danger")
+        return redirect(url_for("index"))
+
     merger = PdfMerger()
-    for file in files:
-        filename = secure_filename(file.filename)
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(path)
-        merger.append(path)
-    output_path = os.path.join(RESULT_FOLDER, 'merged.pdf')
+    for f in files:
+        merger.append(f)
+
+    output_path = os.path.join(tempfile.gettempdir(), "merged.pdf")
     merger.write(output_path)
     merger.close()
-    return send_file(output_path, as_attachment=True)
 
-@app.route('/split', methods=['POST'])
+    flash("PDFs merged successfully!", "success")
+    return send_file(output_path, as_attachment=True, download_name="merged.pdf")
+
+@app.route("/split", methods=["POST"])
 def split():
-    file = request.files['split_file']
-    filename = secure_filename(file.filename)
-    input_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(input_path)
+    file = request.files.get("split_file")
+    if not file or not allowed_file(file.filename):
+        flash("Please upload a valid PDF file to split.", "danger")
+        return redirect(url_for("index"))
 
-    reader = PdfReader(input_path)
-    output_dir = os.path.join(RESULT_FOLDER, 'split_pages')
-    os.makedirs(output_dir, exist_ok=True)
-
-    zip_path = os.path.join(RESULT_FOLDER, 'split_pages.zip')
+    reader = PdfReader(file)
+    temp_dir = tempfile.mkdtemp()
 
     for i, page in enumerate(reader.pages):
         writer = PdfWriter()
         writer.add_page(page)
-        out_path = os.path.join(output_dir, f'page_{i + 1}.pdf')
-        with open(out_path, 'wb') as f:
+        page_path = os.path.join(temp_dir, f"page_{i+1}.pdf")
+        with open(page_path, "wb") as f:
             writer.write(f)
 
-    # Zip the folder
-    import zipfile
-    with zipfile.ZipFile(zip_path, 'w') as zipf:
-        for pdf in os.listdir(output_dir):
-            zipf.write(os.path.join(output_dir, pdf), pdf)
+    zip_path = os.path.join(tempfile.gettempdir(), "split_pages.zip")
+    with zipfile.ZipFile(zip_path, "w") as zipf:
+        for pdf_file in os.listdir(temp_dir):
+            zipf.write(os.path.join(temp_dir, pdf_file), pdf_file)
 
-    return send_file(zip_path, as_attachment=True)
+    flash("PDF split successfully! Download the ZIP file.", "success")
+    return send_file(zip_path, as_attachment=True, download_name="split_pages.zip")
 
-@app.route('/compress', methods=['POST'])
+@app.route("/compress", methods=["POST"])
 def compress():
-    file = request.files['compress_file']
-    quality = request.form['quality']
-    input_path = os.path.join(UPLOAD_FOLDER, secure_filename(file.filename))
+    file = request.files.get("compress_file")
+    if not file or not allowed_file(file.filename):
+        flash("Please upload a valid PDF file to compress.", "danger")
+        return redirect(url_for("index"))
+
+    input_path = os.path.join(tempfile.gettempdir(), secure_filename(file.filename))
     file.save(input_path)
 
-    output_path = os.path.join(RESULT_FOLDER, 'compressed.pdf')
+    output_path = os.path.join(tempfile.gettempdir(), "compressed.pdf")
 
-    gs_executable = 'gswin64c' if os.name == 'nt' else 'gs'  # Make sure it's in PATH
+    gs_cmd = [
+        "gs",
+        "-sDEVICE=pdfwrite",
+        "-dCompatibilityLevel=1.4",
+        "-dPDFSETTINGS=/screen",
+        "-dNOPAUSE",
+        "-dQUIET",
+        "-dBATCH",
+        f"-sOutputFile={output_path}",
+        input_path
+    ]
 
     try:
-        subprocess.run([
-            gs_executable,
-            "-sDEVICE=pdfwrite",
-            "-dCompatibilityLevel=1.4",
-            f"-dPDFSETTINGS={quality}",
-            "-dNOPAUSE",
-            "-dQUIET",
-            "-dBATCH",
-            f"-sOutputFile={output_path}",
-            input_path
-        ], check=True)
-    except Exception as e:
-        return f"Ghostscript error: {e}", 500
+        subprocess.run(gs_cmd, check=True)
+        flash("PDF compressed successfully!", "success")
+        return send_file(output_path, as_attachment=True, download_name="compressed.pdf")
+    except Exception:
+        flash("Compression failed. Make sure Ghostscript is correctly installed.", "danger")
+        return redirect(url_for("index"))
 
-    return send_file(output_path, as_attachment=True)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
