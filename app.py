@@ -76,7 +76,7 @@ def compress():
     output_path = os.path.join(tempfile.gettempdir(), "compressed_" + secure_filename(file.filename))
 
     gs_cmd = [
-    "gs",
+    r"C:/Program Files/gs/gs10.05.1/bin/gswin64c.exe",  # Path to Ghostscript on Windows
     "-sDEVICE=pdfwrite",
     "-dCompatibilityLevel=1.4",
     "-dPDFSETTINGS=/screen",
@@ -86,6 +86,7 @@ def compress():
     f"-sOutputFile={output_path}",
     input_path
 ]
+
 
 
     try:
