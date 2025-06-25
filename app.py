@@ -75,19 +75,18 @@ def compress():
 
     output_path = os.path.join(tempfile.gettempdir(), "compressed_" + secure_filename(file.filename))
 
+    gs_executable = "gswin64c.exe" if os.name == "nt" else "gs"
     gs_cmd = [
-    r"C:/Program Files/gs/gs10.05.1/bin/gswin64c.exe",  # Path to Ghostscript on Windows
-    "-sDEVICE=pdfwrite",
-    "-dCompatibilityLevel=1.4",
-    "-dPDFSETTINGS=/screen",
-    "-dNOPAUSE",
-    "-dQUIET",
-    "-dBATCH",
-    f"-sOutputFile={output_path}",
-    input_path
-]
-
-
+        gs_executable,
+        "-sDEVICE=pdfwrite",
+        "-dCompatibilityLevel=1.4",
+        "-dPDFSETTINGS=/screen",
+        "-dNOPAUSE",
+        "-dQUIET",
+        "-dBATCH",
+        f"-sOutputFile={output_path}",
+        input_path
+    ]
 
     try:
         subprocess.run(gs_cmd, check=True)
@@ -95,6 +94,9 @@ def compress():
         return send_file(output_path, as_attachment=True, download_name="compressed_" + secure_filename(file.filename))
     except subprocess.CalledProcessError:
         flash("Compression failed. Make sure Ghostscript is installed.", "danger")
+        return redirect(url_for("index"))
+    except FileNotFoundError:
+        flash("Ghostscript executable not found. Make sure Ghostscript is installed and in PATH.", "danger")
         return redirect(url_for("index"))
 
 if __name__ == "__main__":
